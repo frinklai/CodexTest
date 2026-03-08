@@ -1,0 +1,225 @@
+        /* 自訂樣式 */
+        body { font-family: 'Inter', sans-serif; }
+        .file-input-label { cursor: pointer; transition: all 0.3s ease; }
+        .file-input-label:hover { opacity: 0.8; }
+        .highlight { background-color: #fef9c3 !important; }
+        .filter-active { background-color: #dbeafe !important; }
+        #excel-content table { user-select: none; }
+        .toggle-collapse {
+            display: inline-block; width: 1.5em; text-align: center; font-weight: bold; font-family: monospace;
+            border: 1px solid #ccc; border-radius: 4px; margin-right: 5px; background-color: #f0f0f0; line-height: 1.2;
+        }
+        /* 右鍵選單樣式 */
+        #context-menu {
+            position: absolute; z-index: 1000; background-color: white; border: 1px solid #ccc; border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: none; min-width: 150px;
+        }
+        #context-menu div { padding: 8px 12px; cursor: pointer; font-size: 14px; }
+        #context-menu div:hover { background-color: #f0f0f0; }
+        #context-menu div.disabled { color: #aaaaaa; cursor: not-allowed; background-color: #f9f9f9; }
+
+        /* 欄位寬度調整桿 */
+        .resize-handle {
+            position: absolute; top: 0; right: -3px; width: 6px; height: 100%;
+            cursor: col-resize; z-index: 40; /* 確保在凍結欄之上 */
+        }
+
+        /* 內容裁切，避免跨欄 */
+        #excel-content th, #excel-content td { overflow: hidden; }
+        .cell-inner {
+            display: block; width: 100%; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            box-sizing: border-box; padding-right: 10px;
+        }
+        .cell-inner > a { display: inline-block; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    
+        /* 行標頭改為淺綠色 */
+        #excel-content thead th {
+        background-color: #dcfce7; /* Tailwind green-100 */
+        }
+
+        /* 原本的 .highlight 改成只在白底生效（不蓋掉藍/綠等已上色格） */
+        .highlight { background-color: transparent; } /* reset */
+        td.highlight.bg-white { background-color: #fef9c3; } /* 選取黃只吃白底 */
+
+        /* 滑鼠 hover 到某列：只把白底的格子變成淺灰，不蓋掉原色 */
+        tbody tr.row-hovering td.bg-white { background-color: #f3f4f6; } /* gray-100 */
+
+        /* 如果 sticky 造成背景被吃掉，保底維持各自底色 */
+        thead th.sticky { background-color: #dcfce7; }          /* 行標頭淺綠 */
+        tbody tr[data-is-summary="true"] td.sticky { background-color: #bbf7d0; } /* 綜合列維持綠 */
+        tbody td.sticky.bg-white { background-color: #ffffff; } /* 一般白底 */
+
+        /* 只針對白底格的列 hover，不會蓋掉藍色/綠色等已上色格 */
+        #excel-content tbody tr.row-hovering td.bg-white {
+        background-color: #f3f4f6; /* Tailwind gray-100 */
+        }
+
+        /* 樹狀縮排與等寬占位 */
+        .tree-indent {
+            /* 只負責縮排，不畫東西 */
+            display: inline-block;
+            height: 1px;
+        }
+
+        .toggle-placeholder {
+            /* 與 .toggle-collapse 一樣寬，讓葉節點對齊 */
+            display: inline-block;
+            width: 1.5em;
+            text-align: center;
+            font-weight: bold;
+            font-family: monospace;
+            border: 1px solid transparent; /* 不顯示邊框，但佔位 */
+            border-radius: 4px;
+            margin-right: 5px;
+            background-color: transparent;
+            line-height: 1.2;
+        }
+
+        /* 冰柱分隔線（最後一個凍結欄右側） */
+        .freeze-edge {
+        position: relative; /* 給 ::after 定位用 */
+        }
+
+        /* 用 pseudo element 畫一條垂直線，跟著 sticky cell 走 */
+        .freeze-edge::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: -1px;                /* 稍微蓋住原本邊框，讓線更明顯 */
+        width: 4px;                 /* 分隔線粗細 */
+        height: 100%;
+        background: linear-gradient(
+            to bottom,
+            rgba(144, 140, 146, 0.26),  /* sky-500 接近的藍 */
+            rgba(59, 130, 246, 0.25)
+        );
+        pointer-events: none;        /* 不影響滑鼠事件 */
+        }
+
+        /* 高亮只在白底生效（原本就有） */
+        .highlight { background-color: transparent; }
+        td.highlight.bg-white { background-color: #fef9c3; }
+
+        /* ★ 新增：若該格是甘特藍(有 data-gantt)，就忽略黃色高亮 */
+        td.highlight[data-gantt="root"],
+        td.highlight[data-gantt="child"] {
+        background-color: inherit !important; /* 不吃黃，維持藍色 */
+        }
+
+        /* ── 統計表格更好讀 ───────────────────────────────── */
+        .stats-wrap table { 
+            border-collapse: collapse; 
+            table-layout: fixed;
+            width: 100%;
+        }
+
+        .stats-wrap thead th { 
+            position: sticky; 
+            top: 0; 
+            background: #f3f4f6; 
+            z-index: 1;
+        }
+
+        .stats-wrap th, 
+        .stats-wrap td { 
+            border: 1px solid #111827; /* gray-900 */
+            padding: 8px 10px; 
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .stats-wrap td.num, 
+        .stats-wrap th.num { 
+            text-align: right; 
+            font-variant-numeric: tabular-nums; /* 等寬數字 */
+        }
+        .stats-wrap colgroup col:first-child { width: 220px; } /* Value Category */
+        .stats-wrap colgroup col.num { width: 110px; }          /* 後面所有數字欄 */
+
+
+        /* 讓統計表的數字可以點 */
+        .stats-clickable { 
+        cursor: pointer; 
+        text-decoration: underline; 
+        text-underline-offset: 2px; 
+        }
+
+        /* 明細表外層：限制高度＋橫向/直向捲動 */
+        .detail-scroller { 
+        overflow: auto; 
+        max-height: 50vh; 
+        border: 1px solid #e5e7eb; 
+        border-radius: .5rem; 
+        }
+
+        /* 明細表：欄寬自適應（以 ch 設 min-width）、表頭 sticky */
+        .detail-table { border-collapse: collapse; }
+        .detail-table th, .detail-table td { 
+        border: 1px solid #d1d5db; 
+        padding: 6px 8px; 
+        white-space: nowrap; 
+        }
+        .detail-table th { 
+        background: #f9fafb; 
+        position: sticky; 
+        top: 0; 
+        z-index: 1; 
+        }
+
+    
+/* 點選高亮（淡黃） */
+#stats-table-1 td.cell-active, #stats-table-2 td.cell-active { background-color: #FEF3C7; }
+
+/* 統計表 Total 列醒目（不刺眼） */
+.row-total { background-color:#F3F4F6; font-weight:600; }
+
+/* 強制避免彈窗內容被任何父層透明度影響 */
+#stats-modal { background-color: rgba(75,85,99,0.5) !important; } /* gray-600 @ 50% */
+#stats-modal .modal-panel { background-color:#ffffff !important; opacity:1 !important; }
+#stats-modal .modal-panel * { opacity:1 !important; }
+
+/* --- Opaque stats tables in modal (no transparency) --- */
+#stats-modal .stats-wrap table,
+#stats-modal .stats-wrap thead th,
+#stats-modal .stats-wrap tbody td {
+  background-color: #ffffff !important;
+}
+#stats-modal .detail-table th,
+#stats-modal .detail-table td {
+  background-color: #ffffff !important;
+}
+#stats-modal .row-total {
+  background-color: #F2F4F8 !important; /* subtle gray-blue */
+  font-weight: 600;
+  border-top: 2px solid #d1d5db;
+}
+/* Make modal panel definitely opaque */
+#stats-modal .bg-white, #stats-modal .modal-panel {
+  background-color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+/* === FIX: restore highlight & total styling above white cell backgrounds === */
+#stats-modal #stats-table-1 td.cell-active,
+#stats-modal #stats-table-2 td.cell-active {
+  background-color: #FEF3C7 !important; /* soft yellow highlight */
+}
+
+#stats-modal #stats-table-1 tr.row-total > td,
+#stats-modal #stats-table-2 tr.row-total > td {
+  background-color: #F1F5F9 !important; /* subtle total row */
+  font-weight: 600;
+  border-top: 2px solid #d1d5db;
+}
+
+    #author-note {
+        position: fixed;
+        bottom: 8px;
+        right: 12px;
+        font-size: 12px;   /* 這裡可以調大小 */
+        color: #230adf7a;       /* 字體顏色 */
+        font-style: italic;
+        pointer-events: none; /* 避免遮住點擊 */
+    }
+    
